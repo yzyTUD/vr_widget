@@ -245,6 +245,12 @@ void vr_test::construct_movable_boxes(float tw, float td, float th, float tW, si
 
 void vr_test::construct_boxes_left_hand()
 {
+	// clear all related vectors 
+	colorpicker_boxes.clear();
+	colorpicker_box_colors.clear();
+	colorpicker_box_translations.clear();
+	colorpicker_box_rotations.clear();
+
 	std::default_random_engine generator;
 	std::uniform_real_distribution<float> distribution(0, 1);
 	std::uniform_real_distribution<float> signed_distribution(-1, 1);
@@ -258,11 +264,11 @@ void vr_test::construct_boxes_left_hand()
 
 	/*vec3 pos = cur_left_hand_posi;
 	mat3 rotation = cur_left_hand_rot;*/
-	left_hand_box_id = movable_box_translations.size();
+	//left_hand_box_id = movable_box_translations.size();
 
 	// box1 
-	movable_boxes.push_back(box3(-0.5f * extent, 0.5f * extent));
-	movable_box_colors.push_back(rgb(distribution(generator),
+	colorpicker_boxes.push_back(box3(-0.5f * extent, 0.5f * extent));
+	colorpicker_box_colors.push_back(rgb(distribution(generator),
 		distribution(generator),
 		distribution(generator)));
 	quat rot(cur_left_hand_rot);
@@ -271,8 +277,8 @@ void vr_test::construct_boxes_left_hand()
 	rot.put_matrix(rot_mat);
 	vec3 addi_posi = rot_mat * demoposi;
 	vec3 modi_posi = cur_left_hand_posi + addi_posi; // addi direction vector should be rotated 
-	movable_box_translations.push_back(modi_posi);
-	movable_box_rotations.push_back(rot);
+	colorpicker_box_translations.push_back(modi_posi);
+	colorpicker_box_rotations.push_back(rot);
 
 }
 /// construct a scene with a table
@@ -684,7 +690,7 @@ void vr_test::init_frame(cgv::render::context& ctx)
 void vr_test::draw(cgv::render::context& ctx)
 {
 	// update the posi. and ori.
-	if (left_hand_box_id > 0) {
+	if (colorpicker_boxes.size() > 0) {
 		vec3 demoposi = vec3(0, 0, -0.2f);
 		quat rot(cur_left_hand_rot);
 		rot.normalize();
@@ -692,8 +698,8 @@ void vr_test::draw(cgv::render::context& ctx)
 		rot.put_matrix(rot_mat);
 		vec3 addi_posi = rot_mat * demoposi;
 		vec3 modi_posi = cur_left_hand_posi + addi_posi; // addi direction vector should be rotated 
-		movable_box_translations.at(left_hand_box_id) = modi_posi;
-		movable_box_rotations.at(left_hand_box_id) = rot;
+		colorpicker_box_translations.at(0) = modi_posi; // the first in vector is a big box 
+		colorpicker_box_rotations.at(0) = rot;
 	}
 	if (MI.is_constructed()) {
 		dmat4 R;
@@ -830,6 +836,17 @@ void vr_test::draw(cgv::render::context& ctx)
 		}
 	}
 	cgv::render::box_renderer& renderer = cgv::render::ref_box_renderer(ctx);
+
+	// draw boxes for color picker 
+	renderer.set_render_style(movable_style); // currently the same style as movable boxes 
+	renderer.set_box_array(ctx, colorpicker_boxes);
+	renderer.set_color_array(ctx, colorpicker_box_colors);
+	renderer.set_translation_array(ctx, colorpicker_box_translations);
+	renderer.set_rotation_array(ctx, colorpicker_box_rotations);
+	if (renderer.validate_and_enable(ctx)) {
+		renderer.draw(ctx, 0, colorpicker_boxes.size());
+	}
+	renderer.disable(ctx);
 
 	// draw dynamic boxes 
 	renderer.set_render_style(movable_style);

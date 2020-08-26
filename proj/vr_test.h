@@ -92,6 +92,11 @@ protected:
 	std::vector<vec3> movable_box_translations;
 	std::vector<quat> movable_box_rotations;
 
+	std::vector<box3> colorpicker_boxes;
+	std::vector<rgb> colorpicker_box_colors;
+	std::vector<vec3> colorpicker_box_translations;
+	std::vector<quat> colorpicker_box_rotations;
+
 	// intersection points
 	std::vector<vec3> intersection_points;
 	std::vector<rgb>  intersection_colors;
@@ -134,7 +139,7 @@ protected:
 	mat3 cur_left_hand_rot;
 	mat3 cur_left_hand_rot_mat;
 
-	int left_hand_box_id = 0;
+	//int left_hand_box_id = 0;
 
 public:
 	void init_cameras(vr::vr_kit* kit_ptr);
