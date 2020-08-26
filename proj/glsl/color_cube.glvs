@@ -20,9 +20,9 @@ mat3 get_normal_matrix();
 mat3 get_inverse_normal_matrix();
 //***** end interface of view.glsl ***********************************
 
-float ot = float(1.0 / 3);
-float tt = float(2.0 / 3);
-float T[14 * 2] = {
+float ot = 1.0f / 3;
+float tt = 2.0f / 3;
+float T[14 * 2] = float[](
 	0.5f,0 , 0.5f,ot ,
 	0.5f,tt , 0.5f,1 ,
 	0.75f,ot , 0.75f,tt ,
@@ -30,9 +30,9 @@ float T[14 * 2] = {
 	0,ot , 0,tt ,
 	0.25f,0 , 0.25f,ot ,
 	0.25f,tt , 0.25f,1 
-};
+);
 
-float V[8 * 3] = {
+float V[8 * 3] = float[](
 	-1,-1,+1,
 	+1,-1,+1,
 	-1,+1,+1,
@@ -41,9 +41,9 @@ float V[8 * 3] = {
 	+1,-1,-1,
 	-1,+1,-1,
 	+1,+1,-1
-};
+);
 
-float colors_for_cube[] = {
+float colors_for_cube[] = float[](
 	1.0f, 0.0f, 0.0f,
 	0.0f, 1.0f, 0.0f,
 	0.0f, 0.0f, 1.0f, 
@@ -52,9 +52,9 @@ float colors_for_cube[] = {
 	0.0f, 1.0f, 0.0f,
 	0.0f, 0.0f, 1.0f, 
 	1.0f, 0.0f, 1.0f
-};
+);
 
-float colors_for_cube_1[] = {
+float colors_for_cube_1[] = float[](
 	1.0f, 0.0f, 0.0f,
 	1.0f, 0.0f, 0.0f,
 	1.0f, 0.0f, 0.0f,
@@ -63,7 +63,7 @@ float colors_for_cube_1[] = {
 	0.0f, 1.0f, 0.0f,
 	0.0f, 1.0f, 0.0f,
 	0.0f, 1.0f, 0.0f
-};
+);
 
 void main()
 {

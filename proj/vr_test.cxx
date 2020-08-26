@@ -566,7 +566,7 @@ bool vr_test::init(cgv::render::context& ctx)
 	cgv::render::ref_sphere_renderer(ctx, 1);
 	cgv::render::ref_rounded_cone_renderer(ctx, 1);
 
-	bool succ = cube_prog.build_program(ctx, "color_cube.glpr");
+	bool succ = cube_prog.build_program(ctx, "color_cube.glpr", true);
 
 	return true;
 }
@@ -871,8 +871,8 @@ void vr_test::draw(cgv::render::context& ctx)
 	if (colorpicker_box_rotations.size() > 0) {
 		cube_prog.enable(ctx);
 			glEnable(GL_DEPTH_TEST);
-			glEnable(GL_CULL_FACE);
-			glCullFace(GL_FRONT);
+			//glEnable(GL_CULL_FACE);
+			//glCullFace(GL_FRONT);
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 				mat4 R;
