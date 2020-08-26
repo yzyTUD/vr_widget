@@ -56,5 +56,5 @@ void main()
 	frag_color = vec4(frag_color.xyz,0.5);
 	//frag_color = vec4(55.0f / 255.0f, 190.0f / 255.0f, 240.0f / 255.0f,0.4);
 	//frag_color = vec4(tc, 1, 0.5); // acceptable effect!
-	frag_color = vec4(col, 0.5);
+	//frag_color = vec4(col, 0.5);
 }

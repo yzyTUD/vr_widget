@@ -255,7 +255,7 @@ void vr_test::construct_boxes_left_hand()
 	std::uniform_real_distribution<float> distribution(0, 1);
 	std::uniform_real_distribution<float> signed_distribution(-1, 1);
 
-	float tmpboxsize = 0.2f;
+	float tmpboxsize = 0.05f;
 	vec3 extent(tmpboxsize);
 	vec3 center(0);
 	vec3 demoposi = vec3(0, 0, -0.2f);
@@ -264,9 +264,8 @@ void vr_test::construct_boxes_left_hand()
 
 	/*vec3 pos = cur_left_hand_posi;
 	mat3 rotation = cur_left_hand_rot;*/
-	//left_hand_box_id = movable_box_translations.size();
 
-	// box1 
+	// colorful box  
 	colorpicker_boxes.push_back(box3(-0.5f * extent, 0.5f * extent));
 	colorpicker_box_colors.push_back(rgb(distribution(generator),
 		distribution(generator),
@@ -280,6 +279,15 @@ void vr_test::construct_boxes_left_hand()
 	colorpicker_box_translations.push_back(modi_posi);
 	colorpicker_box_rotations.push_back(rot);
 
+	// picker 
+	picker_box_id = movable_box_translations.size(); // record the posi. of the picker box 
+
+	movable_boxes.push_back(box3(-0.5f * extent, 0.5f * extent));
+	movable_box_colors.push_back(rgb(distribution(generator),
+		distribution(generator),
+		distribution(generator)));
+	movable_box_translations.push_back(modi_posi);
+	movable_box_rotations.push_back(rot);
 }
 /// construct a scene with a table
 void vr_test::build_scene(float w, float d, float h, float W, float tw, float td, float th, float tW)
@@ -692,7 +700,7 @@ void vr_test::init_frame(cgv::render::context& ctx)
 
 void vr_test::draw(cgv::render::context& ctx)
 {
-	// update the posi. and ori.
+	// update the posi. and ori. for both boxes, can be moved to pose event 
 	if (colorpicker_boxes.size() > 0) {
 		vec3 demoposi = vec3(0, 0, -0.2f);
 		quat rot(cur_left_hand_rot);
@@ -701,8 +709,14 @@ void vr_test::draw(cgv::render::context& ctx)
 		rot.put_matrix(rot_mat);
 		vec3 addi_posi = rot_mat * demoposi;
 		vec3 modi_posi = cur_left_hand_posi + addi_posi; // addi direction vector should be rotated 
-		colorpicker_box_translations.at(0) = modi_posi; // the first in vector is a big box 
+
+		// update the position for the colorful box 
+		colorpicker_box_translations.at(0) = modi_posi; // only one element actually
 		colorpicker_box_rotations.at(0) = rot;
+
+		// update the position for the picker box 
+		movable_box_translations.at(picker_box_id) = modi_posi;
+		movable_box_rotations.at(picker_box_id) = rot;
 	}
 	if (MI.is_constructed()) {
 		dmat4 R;
@@ -840,18 +854,23 @@ void vr_test::draw(cgv::render::context& ctx)
 	}
 	cgv::render::box_renderer& renderer = cgv::render::ref_box_renderer(ctx);
 
-	// draw boxes for color picker 
-	//renderer.set_render_style(movable_style); // currently the same style as movable boxes 
-	//renderer.set_box_array(ctx, colorpicker_boxes);
-	//renderer.set_color_array(ctx, colorpicker_box_colors);
-	//renderer.set_translation_array(ctx, colorpicker_box_translations);
-	//renderer.set_rotation_array(ctx, colorpicker_box_rotations);
-	//if (renderer.validate_and_enable(ctx)) {
-	//	renderer.draw(ctx, 0, colorpicker_boxes.size());
+	// draw boxes for color picker, the small one, merged to movable boxes  
+	//if (colorpicker_box_rotations.size() > 1) {
+	//	renderer.set_render_style(movable_style); // currently the same style as movable boxes 
+	//	renderer.set_box_array(ctx, colorpicker_boxes);
+	//	renderer.set_color_array(ctx, colorpicker_box_colors);
+	//	renderer.set_translation_array(ctx, colorpicker_box_translations);
+	//	renderer.set_rotation_array(ctx, colorpicker_box_rotations);
+	//	if (renderer.validate_and_enable(ctx)) {
+	//		renderer.draw(ctx, 0, colorpicker_boxes.size());
+	//	}
+	//	renderer.disable(ctx);
 	//}
-	//renderer.disable(ctx);
+
+	// draw color range (the big colorful box)
 	if (colorpicker_box_rotations.size() > 0) {
 		cube_prog.enable(ctx);
+			glEnable(GL_DEPTH_TEST);
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 				mat4 R;
@@ -862,7 +881,7 @@ void vr_test::draw(cgv::render::context& ctx)
 						* R 
 						* cgv::math::scale4<double>(0.1, 0.1, 0.1)
 					);
-					ctx.tesselate_unit_cube(false, false); //_with_color
+					ctx.tesselate_unit_cube(true, false); //_with_color
 				ctx.pop_modelview_matrix();
 			glDisable(GL_BLEND);
 		cube_prog.disable(ctx);
