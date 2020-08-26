@@ -255,7 +255,7 @@ void vr_test::construct_boxes_left_hand()
 	std::uniform_real_distribution<float> distribution(0, 1);
 	std::uniform_real_distribution<float> signed_distribution(-1, 1);
 
-	float tmpboxsize = 0.05f;
+	float tmpboxsize = 0.02f;
 	vec3 extent(tmpboxsize);
 	vec3 center(0);
 	vec3 demoposi = vec3(0, 0, -0.2f);
@@ -871,6 +871,8 @@ void vr_test::draw(cgv::render::context& ctx)
 	if (colorpicker_box_rotations.size() > 0) {
 		cube_prog.enable(ctx);
 			glEnable(GL_DEPTH_TEST);
+			glEnable(GL_CULL_FACE);
+			glCullFace(GL_FRONT);
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 				mat4 R;
