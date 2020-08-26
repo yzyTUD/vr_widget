@@ -138,6 +138,7 @@ protected:
 	vec3 cur_left_hand_dir;
 	mat3 cur_left_hand_rot;
 	mat3 cur_left_hand_rot_mat;
+	cgv::render::shader_program cube_prog;
 
 	//int left_hand_box_id = 0;
 

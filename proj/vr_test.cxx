@@ -557,6 +557,9 @@ bool vr_test::init(cgv::render::context& ctx)
 	cgv::render::ref_box_renderer(ctx, 1);
 	cgv::render::ref_sphere_renderer(ctx, 1);
 	cgv::render::ref_rounded_cone_renderer(ctx, 1);
+
+	bool succ = cube_prog.build_program(ctx, "color_cube.glpr");
+
 	return true;
 }
 
@@ -838,15 +841,32 @@ void vr_test::draw(cgv::render::context& ctx)
 	cgv::render::box_renderer& renderer = cgv::render::ref_box_renderer(ctx);
 
 	// draw boxes for color picker 
-	renderer.set_render_style(movable_style); // currently the same style as movable boxes 
-	renderer.set_box_array(ctx, colorpicker_boxes);
-	renderer.set_color_array(ctx, colorpicker_box_colors);
-	renderer.set_translation_array(ctx, colorpicker_box_translations);
-	renderer.set_rotation_array(ctx, colorpicker_box_rotations);
-	if (renderer.validate_and_enable(ctx)) {
-		renderer.draw(ctx, 0, colorpicker_boxes.size());
+	//renderer.set_render_style(movable_style); // currently the same style as movable boxes 
+	//renderer.set_box_array(ctx, colorpicker_boxes);
+	//renderer.set_color_array(ctx, colorpicker_box_colors);
+	//renderer.set_translation_array(ctx, colorpicker_box_translations);
+	//renderer.set_rotation_array(ctx, colorpicker_box_rotations);
+	//if (renderer.validate_and_enable(ctx)) {
+	//	renderer.draw(ctx, 0, colorpicker_boxes.size());
+	//}
+	//renderer.disable(ctx);
+	if (colorpicker_box_rotations.size() > 0) {
+		cube_prog.enable(ctx);
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				mat4 R;
+				//dquat(vec3(0, 1, 0), 3.14 * (45.0f / 180.0f)).put_homogeneous_matrix(R); 
+				colorpicker_box_rotations.at(0).put_homogeneous_matrix(R);
+				ctx.push_modelview_matrix();
+					ctx.mul_modelview_matrix(cgv::math::translate4<double>(colorpicker_box_translations.at(0))
+						* R 
+						* cgv::math::scale4<double>(0.1, 0.1, 0.1)
+					);
+					ctx.tesselate_unit_cube(false, false); //_with_color
+				ctx.pop_modelview_matrix();
+			glDisable(GL_BLEND);
+		cube_prog.disable(ctx);
 	}
-	renderer.disable(ctx);
 
 	// draw dynamic boxes 
 	renderer.set_render_style(movable_style);
