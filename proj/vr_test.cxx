@@ -243,6 +243,38 @@ void vr_test::construct_movable_boxes(float tw, float td, float th, float tW, si
 	}
 }
 
+void vr_test::construct_boxes_left_hand()
+{
+	std::default_random_engine generator;
+	std::uniform_real_distribution<float> distribution(0, 1);
+	std::uniform_real_distribution<float> signed_distribution(-1, 1);
+
+	float tmpboxsize = 0.2f;
+	vec3 extent(tmpboxsize);
+	vec3 center(0);
+	vec3 demoposi = vec3(0, 0, -0.2f);
+	vec3 posi1 = vec3(-0.2, 0.2f, 0);
+	vec3 posi2 = vec3(0.2, 0.2f, 0); // z can not be positive??
+
+	/*vec3 pos = cur_left_hand_posi;
+	mat3 rotation = cur_left_hand_rot;*/
+	left_hand_box_id = movable_box_translations.size();
+
+	// box1 
+	movable_boxes.push_back(box3(-0.5f * extent, 0.5f * extent));
+	movable_box_colors.push_back(rgb(distribution(generator),
+		distribution(generator),
+		distribution(generator)));
+	quat rot(cur_left_hand_rot);
+	rot.normalize();
+	mat3 rot_mat;
+	rot.put_matrix(rot_mat);
+	vec3 addi_posi = rot_mat * demoposi;
+	vec3 modi_posi = cur_left_hand_posi + addi_posi; // addi direction vector should be rotated 
+	movable_box_translations.push_back(modi_posi);
+	movable_box_rotations.push_back(rot);
+
+}
 /// construct a scene with a table
 void vr_test::build_scene(float w, float d, float h, float W, float tw, float td, float th, float tW)
 {
@@ -441,6 +473,11 @@ bool vr_test::handle(cgv::gui::event& e)
 					else
 						++i;
 				}
+
+				// update positions 
+				cur_left_hand_posi = vrpe.get_position();
+				cur_left_hand_rot = vrpe.get_orientation();
+				cur_left_hand_rot_mat = vrpe.get_rotation_matrix();
 
 				// compute intersections
 				vec3 origin, direction;
@@ -646,6 +683,18 @@ void vr_test::init_frame(cgv::render::context& ctx)
 
 void vr_test::draw(cgv::render::context& ctx)
 {
+	// update the posi. and ori.
+	if (left_hand_box_id > 0) {
+		vec3 demoposi = vec3(0, 0, -0.2f);
+		quat rot(cur_left_hand_rot);
+		rot.normalize();
+		mat3 rot_mat;
+		rot.put_matrix(rot_mat);
+		vec3 addi_posi = rot_mat * demoposi;
+		vec3 modi_posi = cur_left_hand_posi + addi_posi; // addi direction vector should be rotated 
+		movable_box_translations.at(left_hand_box_id) = modi_posi;
+		movable_box_rotations.at(left_hand_box_id) = rot;
+	}
 	if (MI.is_constructed()) {
 		dmat4 R;
 		mesh_orientation.put_homogeneous_matrix(R);
@@ -888,6 +937,7 @@ void vr_test::create_gui() {
 	add_gui("mesh_orientation", static_cast<dvec4&>(mesh_orientation), "direction", "options='min=-1;max=1;ticks=true");
 	add_member_control(this, "ray_length", ray_length, "value_slider", "min=0.1;max=10;log=true;ticks=true");
 	add_member_control(this, "show_seethrough", show_seethrough, "check");
+	connect_copy(add_button("construct_boxes_left_hand")->click, cgv::signal::rebind(this, &vr_test::construct_boxes_left_hand));
 	if(last_kit_handle) {
 		add_decorator("cameras", "heading", "level=3");
 		add_view("nr", nr_cameras);

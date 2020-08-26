@@ -128,6 +128,14 @@ protected:
 	vec2 center_left;
 	vec2 center_right;
 
+	//
+	vec3 cur_left_hand_posi;
+	vec3 cur_left_hand_dir;
+	mat3 cur_left_hand_rot;
+	mat3 cur_left_hand_rot_mat;
+
+	int left_hand_box_id = 0;
+
 public:
 	void init_cameras(vr::vr_kit* kit_ptr);
 
@@ -149,6 +157,8 @@ public:
 	void construct_environment(float s, float ew, float ed, float w, float d, float h);
 	/// construct boxes that represent a table of dimensions tw,td,th and leg width tW
 	void construct_movable_boxes(float tw, float td, float th, float tW, size_t nr);
+	///
+	void construct_boxes_left_hand();
 	/// construct a scene with a table
 	void build_scene(float w, float d, float h, float W, float tw, float td, float th, float tW);
 public:
