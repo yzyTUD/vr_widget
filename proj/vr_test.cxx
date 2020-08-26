@@ -871,8 +871,8 @@ void vr_test::draw(cgv::render::context& ctx)
 	if (colorpicker_box_rotations.size() > 0) {
 		cube_prog.enable(ctx);
 			glEnable(GL_DEPTH_TEST);
-			//glEnable(GL_CULL_FACE);
-			//glCullFace(GL_FRONT);
+			glEnable(GL_CULL_FACE);
+			glCullFace(GL_FRONT);
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 				mat4 R;
