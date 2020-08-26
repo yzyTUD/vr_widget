@@ -39,10 +39,10 @@ protected:
 	std::vector<box3> boxes;
 	std::vector<rgb> box_colors;
 
-	// rendering style for boxes
+	// rendering styles
 	cgv::render::box_render_style style;
-
 	cgv::render::rounded_cone_render_style cone_style;
+
 	// sample for rendering a mesh
 	double mesh_scale;
 	dvec3 mesh_location;
@@ -58,7 +58,10 @@ protected:
 	float label_size;
 	rgb label_color;
 
+private:
 	bool label_outofdate; // whether label texture is out of date
+
+protected:
 	unsigned label_resolution; // resolution of label texture
 	cgv::render::texture label_tex; // texture used for offline rendering of label
 	cgv::render::frame_buffer label_fbo; // fbo used for offline rendering of label
@@ -71,9 +74,9 @@ protected:
 	cgv::media::font::font_face_ptr label_font_face;
 	cgv::media::font::FontFaceAttributes label_face_type;
 
+	// manage controller input configuration for left controller
+	std::vector<vr::controller_input_config> left_inp_cfg;
 
-	// keep deadzone and precision vector for left controller
-	cgv::gui::vr_server::vec_flt_flt left_deadzone_and_precision;
 	// store handle to vr kit of which left deadzone and precision is configured
 	void* last_kit_handle;
 
@@ -95,7 +98,7 @@ protected:
 	std::vector<int>  intersection_box_indices;
 	std::vector<int>  intersection_controller_indices;
 
-	// state of current interaction with boxes for each controller
+	// state of current interaction with boxes for all controllers
 	InteractionState state[4];
 
 	// render style for interaction
@@ -134,6 +137,8 @@ public:
 
 	/// compute intersection points of controller ray with movable boxes
 	void compute_intersections(const vec3& origin, const vec3& direction, int ci, const rgb& color);
+	/// keep track of status changes
+	void on_status_change(void* kit_handle, int ci, vr::VRStatus old_status, vr::VRStatus new_status);
 	/// register on device change events
 	void on_device_change(void* kit_handle, bool attach);
 	/// construct boxes that represent a table of dimensions tw,td,th and leg width tW
