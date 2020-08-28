@@ -255,7 +255,7 @@ void vr_test::construct_boxes_left_hand()
 	std::uniform_real_distribution<float> distribution(0, 1);
 	std::uniform_real_distribution<float> signed_distribution(-1, 1);
 
-	float tmpboxsize = 0.02f;
+	float tmpboxsize = 0.02f * colbox_scale_factor;
 	vec3 extent(tmpboxsize);
 	vec3 center(0);
 	vec3 demoposi = vec3(0, 0, -0.2f);
@@ -354,6 +354,8 @@ vr_test::vr_test()
 	}
 	font_enum_decl += "'";
 	state[0] = state[1] = state[2] = state[3] = IS_NONE;
+
+	delta = vec3(0.01, 0.01, 0.01); // some problem
 }
 	
 void vr_test::stream_help(std::ostream& os) {
@@ -445,6 +447,12 @@ bool vr_test::handle(cgv::gui::event& e)
 		cgv::gui::vr_pose_event& vrpe = static_cast<cgv::gui::vr_pose_event&>(e);
 		// check for controller pose events
 		int ci = vrpe.get_trackable_index();
+		if (ci == 0) { // left hand event 
+			// update positions 
+			cur_left_hand_posi = vrpe.get_position();
+			cur_left_hand_rot = vrpe.get_orientation();
+			cur_left_hand_rot_mat = vrpe.get_rotation_matrix();
+		}
 		if (ci != -1) {
 			if (state[ci] == IS_GRAB) {
 				// in grab mode apply relative transformation to grabbed boxes
@@ -487,11 +495,6 @@ bool vr_test::handle(cgv::gui::event& e)
 					else
 						++i;
 				}
-
-				// update positions 
-				cur_left_hand_posi = vrpe.get_position();
-				cur_left_hand_rot = vrpe.get_orientation();
-				cur_left_hand_rot_mat = vrpe.get_rotation_matrix();
 
 				// compute intersections
 				vec3 origin, direction;
@@ -715,8 +718,8 @@ void vr_test::draw(cgv::render::context& ctx)
 		colorpicker_box_translations.at(0) = modi_posi; // only one element actually
 		colorpicker_box_rotations.at(0) = rot;
 
-		// update the position for the picker box 
-		movable_box_translations.at(picker_box_id) = modi_posi;
+		// update the position for the picker box, picker_box_id identifies the position in a vector 
+		movable_box_translations.at(picker_box_id) = modi_posi + rot_mat * delta;
 		movable_box_rotations.at(picker_box_id) = rot;
 	}
 	// draw line test 
@@ -725,27 +728,27 @@ void vr_test::draw(cgv::render::context& ctx)
 		std::vector<float> R;
 		std::vector<rgb> C;
 		// y axis
-		P.push_back(colorpicker_box_translations.at(0));
+		P.push_back(movable_box_translations.at(picker_box_id));
 		R.push_back(0.002f);
 		mat3 rot_matrix;
-		colorpicker_box_rotations.at(0).put_matrix(rot_matrix);
-		P.push_back(colorpicker_box_translations.at(0) + rot_matrix * vec3(0,-0.1,0));
+		movable_box_rotations.at(picker_box_id).put_matrix(rot_matrix);
+		P.push_back(movable_box_translations.at(picker_box_id) + rot_matrix * vec3(0, 0.1 * colbox_scale_factor - delta.y(), 0));
 		R.push_back(0.003f);
 		C.push_back(rgb(0, 1, 0));
 		C.push_back(rgb(0, 1, 0));
 		// x axis
-		P.push_back(colorpicker_box_translations.at(0));
+		P.push_back(movable_box_translations.at(picker_box_id));
 		R.push_back(0.002f);
-		colorpicker_box_rotations.at(0).put_matrix(rot_matrix);
-		P.push_back(colorpicker_box_translations.at(0) + rot_matrix * vec3(-0.1, 0, 0));
+		movable_box_rotations.at(picker_box_id).put_matrix(rot_matrix);
+		P.push_back(movable_box_translations.at(picker_box_id) + rot_matrix * vec3(0.1 * colbox_scale_factor - delta.x(), 0, 0));
 		R.push_back(0.003f);
 		C.push_back(rgb(1, 0, 0));
 		C.push_back(rgb(1, 0, 0));
 		// z axis 
-		P.push_back(colorpicker_box_translations.at(0));
+		P.push_back(movable_box_translations.at(picker_box_id));
 		R.push_back(0.002f);
-		colorpicker_box_rotations.at(0).put_matrix(rot_matrix);
-		P.push_back(colorpicker_box_translations.at(0) + rot_matrix * vec3(0, 0, 0.1));
+		movable_box_rotations.at(picker_box_id).put_matrix(rot_matrix);
+		P.push_back(movable_box_translations.at(picker_box_id) + rot_matrix * vec3(0, 0, 0.1 * colbox_scale_factor - delta.z()));
 		R.push_back(0.003f);
 		C.push_back(rgb(0, 0, 1));
 		C.push_back(rgb(0, 0, 1));
@@ -937,9 +940,9 @@ void vr_test::draw(cgv::render::context& ctx)
 				ctx.push_modelview_matrix();
 					ctx.mul_modelview_matrix(cgv::math::translate4<double>(colorpicker_box_translations.at(0))
 						* R 
-						* cgv::math::scale4<double>(0.1, 0.1, 0.1)
+						* cgv::math::scale4<double>(0.1 * colbox_scale_factor, 0.1 * colbox_scale_factor, 0.1 * colbox_scale_factor)
 					);
-					ctx.tesselate_unit_cube(true, false); //_with_color
+					ctx.tesselate_unit_cube(false, false); //_with_color
 				ctx.pop_modelview_matrix();
 			glDisable(GL_BLEND);
 		cube_prog.disable(ctx);
@@ -1051,6 +1054,7 @@ void vr_test::create_gui() {
 	add_gui("mesh_orientation", static_cast<dvec4&>(mesh_orientation), "direction", "options='min=-1;max=1;ticks=true");
 	add_member_control(this, "ray_length", ray_length, "value_slider", "min=0.1;max=10;log=true;ticks=true");
 	add_member_control(this, "show_seethrough", show_seethrough, "check");
+	add_gui("delta", delta, "vector", "options='min=-0.3;max=0.3;ticks=true");
 	connect_copy(add_button("construct_boxes_left_hand")->click, cgv::signal::rebind(this, &vr_test::construct_boxes_left_hand));
 	if(last_kit_handle) {
 		add_decorator("cameras", "heading", "level=3");

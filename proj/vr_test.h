@@ -141,6 +141,8 @@ protected:
 	cgv::render::shader_program cube_prog;
 
 	int picker_box_id = 0;
+	vec3 delta = vec3(0,0,0);
+	float colbox_scale_factor = 3;
 
 public:
 	void init_cameras(vr::vr_kit* kit_ptr);
