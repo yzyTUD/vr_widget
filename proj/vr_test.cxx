@@ -700,6 +700,7 @@ void vr_test::init_frame(cgv::render::context& ctx)
 
 void vr_test::draw(cgv::render::context& ctx)
 {
+
 	// update the posi. and ori. for both boxes, can be moved to pose event 
 	if (colorpicker_boxes.size() > 0) {
 		vec3 demoposi = vec3(0, 0, -0.2f);
@@ -717,6 +718,61 @@ void vr_test::draw(cgv::render::context& ctx)
 		// update the position for the picker box 
 		movable_box_translations.at(picker_box_id) = modi_posi;
 		movable_box_rotations.at(picker_box_id) = rot;
+	}
+	// draw line test 
+	if (colorpicker_boxes.size()>0) {
+		std::vector<vec3> P;
+		std::vector<float> R;
+		std::vector<rgb> C;
+		// y axis
+		P.push_back(colorpicker_box_translations.at(0));
+		R.push_back(0.002f);
+		mat3 rot_matrix;
+		colorpicker_box_rotations.at(0).put_matrix(rot_matrix);
+		P.push_back(colorpicker_box_translations.at(0) + rot_matrix * vec3(0,-0.1,0));
+		R.push_back(0.003f);
+		C.push_back(rgb(0, 1, 0));
+		C.push_back(rgb(0, 1, 0));
+		// x axis
+		P.push_back(colorpicker_box_translations.at(0));
+		R.push_back(0.002f);
+		colorpicker_box_rotations.at(0).put_matrix(rot_matrix);
+		P.push_back(colorpicker_box_translations.at(0) + rot_matrix * vec3(-0.1, 0, 0));
+		R.push_back(0.003f);
+		C.push_back(rgb(1, 0, 0));
+		C.push_back(rgb(1, 0, 0));
+		// z axis 
+		P.push_back(colorpicker_box_translations.at(0));
+		R.push_back(0.002f);
+		colorpicker_box_rotations.at(0).put_matrix(rot_matrix);
+		P.push_back(colorpicker_box_translations.at(0) + rot_matrix * vec3(0, 0, 0.1));
+		R.push_back(0.003f);
+		C.push_back(rgb(0, 0, 1));
+		C.push_back(rgb(0, 0, 1));
+		if (P.size() > 0) {
+			auto& cr = cgv::render::ref_rounded_cone_renderer(ctx);
+			cr.set_render_style(cone_style);
+			//cr.set_eye_position(vr_view_ptr->get_eye_of_kit());
+			cr.set_position_array(ctx, P);
+			cr.set_color_array(ctx, C);
+			cr.set_radius_array(ctx, R);
+			if (!cr.render(ctx, 0, P.size())) {
+				cgv::render::shader_program& prog = ctx.ref_default_shader_program();
+				int pi = prog.get_position_index();
+				int ci = prog.get_color_index();
+				cgv::render::attribute_array_binding::set_global_attribute_array(ctx, pi, P);
+				cgv::render::attribute_array_binding::enable_global_array(ctx, pi);
+				cgv::render::attribute_array_binding::set_global_attribute_array(ctx, ci, C);
+				cgv::render::attribute_array_binding::enable_global_array(ctx, ci);
+				glLineWidth(3);
+				prog.enable(ctx);
+				glDrawArrays(GL_LINES, 0, (GLsizei)P.size());
+				prog.disable(ctx);
+				cgv::render::attribute_array_binding::disable_global_array(ctx, pi);
+				cgv::render::attribute_array_binding::disable_global_array(ctx, ci);
+				glLineWidth(1);
+			}
+		}
 	}
 	if (MI.is_constructed()) {
 		dmat4 R;
@@ -813,7 +869,7 @@ void vr_test::draw(cgv::render::context& ctx)
 			std::vector<float> R;
 			std::vector<rgb> C;
 			const vr::vr_kit_state* state_ptr = vr_view_ptr->get_current_vr_state();
-			if (state_ptr) {
+			if (state_ptr && colorpicker_boxes.size() == 0) {
 				for (int ci = 0; ci < 4; ++ci) if (state_ptr->controller[ci].status == vr::VRS_TRACKED) {
 					vec3 ray_origin, ray_direction;
 					state_ptr->controller[ci].put_ray(&ray_origin(0), &ray_direction(0));
