@@ -921,26 +921,26 @@ void vr_test::draw(cgv::render::context& ctx)
 	}
 
 	// draw color range (the big colorful box)
-	//if (colorpicker_box_rotations.size() > 0) {
-	//	cube_prog.enable(ctx);
-	//		glEnable(GL_DEPTH_TEST);
-	//		glEnable(GL_CULL_FACE);
-	//		glCullFace(GL_FRONT);
-	//		glEnable(GL_BLEND);
-	//		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	//			mat4 R;
-	//			//dquat(vec3(0, 1, 0), 3.14 * (45.0f / 180.0f)).put_homogeneous_matrix(R); 
-	//			colorpicker_box_rotations.at(0).put_homogeneous_matrix(R);
-	//			ctx.push_modelview_matrix();
-	//				ctx.mul_modelview_matrix(cgv::math::translate4<double>(colorpicker_box_translations.at(0))
-	//					* R 
-	//					* cgv::math::scale4<double>(0.1 * colbox_scale_factor, 0.1 * colbox_scale_factor, 0.1 * colbox_scale_factor)
-	//				);
-	//				ctx.tesselate_unit_cube(false, false); //_with_color
-	//			ctx.pop_modelview_matrix();
-	//		glDisable(GL_BLEND);
-	//	cube_prog.disable(ctx);
-	//}
+	if (colorpicker_box_rotations.size() > 0) {
+		cube_prog.enable(ctx);
+			glEnable(GL_DEPTH_TEST);
+			glEnable(GL_CULL_FACE);
+			glCullFace(GL_FRONT);
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				mat4 R;
+				//dquat(vec3(0, 1, 0), 3.14 * (45.0f / 180.0f)).put_homogeneous_matrix(R); 
+				colorpicker_box_rotations.at(0).put_homogeneous_matrix(R);
+				ctx.push_modelview_matrix();
+					ctx.mul_modelview_matrix(cgv::math::translate4<double>(colorpicker_box_translations.at(0))
+						* R 
+						* cgv::math::scale4<double>(0.1 * colbox_scale_factor, 0.1 * colbox_scale_factor, 0.1 * colbox_scale_factor)
+					);
+					ctx.tesselate_unit_cube(false, false); //_with_color
+				ctx.pop_modelview_matrix();
+			glDisable(GL_BLEND);
+		cube_prog.disable(ctx);
+	}
 
 	// draw dynamic boxes 
 	renderer.set_render_style(movable_style);
